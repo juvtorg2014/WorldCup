@@ -1,18 +1,56 @@
 # Загрузка результатов конкурса World Cup Trading Championship
-
+import sys
+from subprocess import run, PIPE, STDOUT
 import requests
 from bs4 import BeautifulSoup
 import re
 import datetime
 
-
+INSTALLED_PACKEGES = sys.modules
 headers = {'User-Agent': 'Mozilla/5.0'}
 FUTURES = "2023 World Cup Championship of Futures Trading®"
 FOREX = "2023 World Cup Championship of Forex Trading®"
 PAGE = "https://www.worldcupchampionships.com//world-cup-trading-championship-standings"
 
+pack_requests = 'requests'
+pack_BS4 = 'bs4'
+pack_datetime = '_datetime'
+pack2 = "pandas"
+
+
+def run_cmd(cmd):
+    """ Запуск командной строки для установки пакетов"""
+    ps = run(cmd, stdout=PIPE, stderr=STDOUT, shell=True, text=True)
+    print(ps.stdout)
+
+
+def check_modules():
+    required = [pack_datetime, pack_requests, pack_BS4]
+    is_pack = []
+    for pack in INSTALLED_PACKEGES:
+        if pack in required:
+            is_pack.append(pack)
+
+    if len(required) != len(is_pack):
+        missing = set(required).difference(set(is_pack))
+        if len(missing) == 1:
+            try:
+                run_cmd(f'pip install --ignore-installed {" ".join([*missing])}')
+            except Exception as e:
+                print(f"Не удалось установить пакет {missing}", e)
+        else:
+            for item in missing:
+                try:
+                    run_cmd(f'pip install --ignore-installed {" ".join([*item])}')
+                except Exception as e:
+                    print(f"Не удалось установить пакет {item}", e)
+                    continue
+    else:
+        print("Все пакеты установлены!")
+
 
 def parsing_page(start_page):
+    check_modules()
     get_page(get_html(start_page))
 
 
