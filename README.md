@@ -1,5 +1,6 @@
 # WorldCup
-Загрузка ежедневный результатов конкурса World Cup Trading Championship.
+Загрузка ежедневных результатов конкурса World Cup Trading Championship
+и конкурса The Global Cup Trading Championship.
 Бывший кубок Робинсона по трейдингу.
 На сайте данные обновляются нерегулярно.
 Возможны пропуск дня после выходных.
