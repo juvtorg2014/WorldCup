@@ -1,4 +1,5 @@
 # Загрузка результатов конкурса World Cup Trading Championship
+import csv
 import sys
 from subprocess import run, PIPE, STDOUT
 import requests
@@ -11,6 +12,7 @@ headers = {'User-Agent': 'Mozilla/5.0'}
 FUTURES = "2023 World Cup Championship of Futures Trading®"
 FOREX = "2023 World Cup Championship of Forex Trading®"
 PAGE = "https://www.worldcupchampionships.com//world-cup-trading-championship-standings"
+
 
 pack_requests = 'requests'
 pack_BS4 = 'bs4'
@@ -67,58 +69,97 @@ def get_page(html):
     soup = BeautifulSoup(html, 'html.parser')
     futures = soup.find('table', class_='tablepress tablepress-id-2023-futures-WCC tablepress-responsive')
     forex = soup.find('table', class_='tablepress tablepress-id-2023-forex-wcc tablepress-responsive')
+    
+    for_g = soup.find('div', class_='has_eae_slider elementor-column elementor-col-33 '
+                                    'elementor-inner-column elementor-element elementor-element-2ffa355')
+    for_name = for_g.find('div', class_="elementor-widget-container").text.split('\n')[1]
+    for_table = for_g.find('table', class_="tablepress tablepress-id-global-cup-forex-23-24 tablepress-responsive")
+    
+    fut = soup.find('div', class_='has_eae_slider elementor-column elementor-col-33 '
+                                  'elementor-inner-column elementor-element elementor-element-e7c9cd4')
+    fut_name = fut.find('div', class_="elementor-widget-container").text.split('\n')[1]
+    fut_table = fut.find('table', class_="tablepress tablepress-id-global-cup-futures-23-24 tablepress-responsive")
+   
     date = soup.find('span', id='tablepress-2023-futures-WCC-description').text
     date_date = date.split(',')[1].split(' ')
     today = date_date[3] + ' ' + date_date[4] + ' ' + date_date[1]
     new_data = today.replace(today.partition(' ')[0], today[:3])
     date_n = datetime.datetime.strptime(new_data, '%b %d %Y')
     date_string = f'{date_n:%Y%m%d}'
+ 
+    table_for = forex.find('tbody', class_='row-hover').find_all('tr')
+    data_for = find_world(table_for)
+   
+    table_fut = futures.find('tbody', class_='row-hover').find_all('tr')
+    data_fut = find_world(table_fut)
+ 
+    for_table_global = for_table.find('tbody', class_='row-hover').find_all('tr')
+    data_for_global = find_global(for_table_global)
+        
+    fut_table_global = fut_table.find('tbody', class_='row-hover').find_all('tr')
+    data_fut_global = find_global(fut_table_global)
+    write_futures(data_fut, data_fut_global, date_string, fut_name)
+    write_forex(data_for, data_for_global, date_string, for_name)
+    
 
-    table_fut = futures.find_all('tbody', class_='row-hover')
-    table_for = forex.find_all('tbody', class_='row-hover')
-
-    fut_list = []
-    for_list = []
-    for item in table_fut:
-        fut_list.append(item.text.title().split('%'))
-    for item in table_for:
-        for_list.append(item.text.title().split('%'))
-
-    final_fut = []
-    final_for = []
-    for play in fut_list:
-        final_fut.append(re.sub(r'[^-a-zA-Z0-9. ]', '', play[0]))
-        final_fut.append(re.sub(r'[^-a-zA-Z0-9. ]', '', play[1]))
-        final_fut.append(re.sub(r'[^-a-zA-Z0-9. ]', '', play[2]))
-        final_fut.append(re.sub(r'[^-a-zA-Z0-9. ]', '', play[3]))
-        final_fut.append(re.sub(r'[^-a-zA-Z0-9. ]', '', play[4]))
-
-    for pl in for_list:
-        final_for.append(re.sub(r'[^-a-zA-Z0-9. ]', '', pl[0]))
-        final_for.append(re.sub(r'[^-a-zA-Z0-9. ]', '', pl[1]))
-        final_for.append(re.sub(r'[^-a-zA-Z0-9. ]', '', pl[2]))
-        final_for.append(re.sub(r'[^-a-zA-Z0-9. ]', '', pl[3]))
-        final_for.append(re.sub(r'[^-a-zA-Z0-9. ]', '', pl[4]))
-
-    with open('Fut_' + date_string + '.txt', 'w', encoding='utf-8') as f:
+def write_futures(data_f, data_global, date, name):
+    with open('Fut_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
         print("*********FUTURES*********")
-        for item in final_fut:
-            place = item[:1]
-            player = re.sub(r'[^a-zA-Z ]', '', item[1:])
-            number = re.sub(r'[^0-9.]', '', item[1:])
-            f.writelines(place + ' ' + player + ' ' + number + "\n")
-            print(place + ' ' + player + ' ' + number)
-        print("*********FUTURES*********")
-    with open('For_' + date_string + '.txt', 'w', encoding='utf-8') as f:
-        print("**********FOREX**********")
-        for item in final_for:
-            place = item[:1]
-            player = re.sub(r'[^a-zA-Z ]', '', item[1:])
-            number = re.sub(r'[^0-9.]', '', item[1:])
-            f.writelines(place + ' ' + player + ' ' + number + "\n")
-            print(place + ' ' + player + ' ' + number)
-        print("**********FOREX**********")
+        f.writelines(FUTURES + '\n')
+        for item in data_f:
+            csv.writer(f, delimiter=';').writerow(item)
+            print(item)
+        f.writelines('\n')
+        print("*********FUTURES GLOBAL**********")
+        f.writelines(name + '\n')
+        for item in data_global:
+            csv.writer(f, delimiter=';').writerow(item)
+            print(item)
+        f.writelines('\n')
+        
 
+def write_forex(data_f, data_global, date, name):
+    with open('For_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
+        print("**********FOREX**********")
+        f.writelines(FOREX + '\n')
+        for item in data_f:
+            csv.writer(f, delimiter=';').writerow(item)
+            print(item)
+        f.writelines('\n')
+        print("*********FOREXGLOBAL**********")
+        f.writelines(name + '\n')
+        for item in data_global:
+            csv.writer(f, delimiter=';').writerow(item)
+            print(item)
+
+            
+def find_global(tags):
+    data_global = []
+    for tr in tags:
+        tds = tr.find_all('td')
+        place = int(tds[0].text)
+        name = tds[1].text
+        procent = float(re.sub(r'[^0-9,.]', '', tds[2].text))
+        country = tr.find('td', class_="column-4").find('script').text.split(',')[1]
+        country = re.sub(r'[^a-zA-Z]', '', country)
+        data = [place, name, procent, country]
+        data_global.append(data)
+    return data_global
+
+
+def find_world(tags):
+    data_world = []
+    for tr in tags:
+        tds = tr.find_all('td')
+        place = int(tds[0].text)
+        name = tds[1].text
+        procent = float(re.sub(r'[^0-9,.]', '', tds[2].text))
+        country = tds[3].find('script').text.split(",")[1]
+        country = re.sub(r'[^a-zA-Z]', '', country)
+        data = [place, name, procent, country]
+        data_world.append(data)
+    return data_world
+    
 
 if __name__ == "__main__":
     parsing_page(PAGE)
