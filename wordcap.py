@@ -1,4 +1,5 @@
 # Загрузка результатов конкурса World Cup Trading Championship
+# и конкурса The Global Cup Trading Championship
 import csv
 import sys
 from subprocess import run, PIPE, STDOUT
