@@ -2,6 +2,7 @@
 # и конкурса The Global Cup Trading Championship
 import csv
 import sys
+import os
 from subprocess import run, PIPE, STDOUT
 import requests
 from bs4 import BeautifulSoup
@@ -104,7 +105,7 @@ def get_page(html):
     
 
 def write_futures(data_f, data_global, date, name):
-    with open('Fut_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
+    with open(os.getcwd() + '\\' + 'Fut_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
         print("*********FUTURES*********")
         f.writelines(FUTURES + '\n')
         for item in data_f:
@@ -120,7 +121,7 @@ def write_futures(data_f, data_global, date, name):
         
 
 def write_forex(data_f, data_global, date, name):
-    with open('For_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
+    with open(os.getcwd() + '\\' + 'For_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
         print("**********FOREX**********")
         f.writelines(FOREX + '\n')
         for item in data_f:
