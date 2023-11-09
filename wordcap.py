@@ -74,12 +74,12 @@ def get_page(html):
     
     for_g = soup.find('div', class_='has_eae_slider elementor-column elementor-col-33 '
                                     'elementor-inner-column elementor-element elementor-element-2ffa355')
-    for_name = for_g.find('div', class_="elementor-widget-container").text.split('\n')[1]
+    for_name = for_g.find('div', class_="elementor-widget-container").text.strip()
     for_table = for_g.find('table', class_="tablepress tablepress-id-global-cup-forex-23-24 tablepress-responsive")
     
     fut = soup.find('div', class_='has_eae_slider elementor-column elementor-col-33 '
                                   'elementor-inner-column elementor-element elementor-element-e7c9cd4')
-    fut_name = fut.find('div', class_="elementor-widget-container").text.split('\n')[1]
+    fut_name = fut.find('div', class_="elementor-widget-container").text.strip()
     fut_table = fut.find('table', class_="tablepress tablepress-id-global-cup-futures-23-24 tablepress-responsive")
    
     date = soup.find('span', id='tablepress-2023-futures-WCC-description').text
@@ -105,34 +105,36 @@ def get_page(html):
     
 
 def write_futures(data_f, data_global, date, name):
-    with open(os.getcwd() + '\\' + 'Fut_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
-        print("*********FUTURES*********")
-        f.writelines(FUTURES + '\n')
-        for item in data_f:
-            csv.writer(f, delimiter=';').writerow(item)
-            print(item)
-        f.writelines('\n')
-        print("*********FUTURES GLOBAL**********")
-        f.writelines(name + '\n')
-        for item in data_global:
-            csv.writer(f, delimiter=';').writerow(item)
-            print(item)
-        f.writelines('\n')
+	''' Запись данных фьючерса в общий файл'''
+	with open(os.getcwd() + '\\' + 'Fut_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
+		print("*********FUTURES*********")
+		f.writelines(FUTURES + '\n')
+		for item in data_f:
+			csv.writer(f, delimiter=';').writerow(item)
+			print(item)
+		f.writelines('\n')
+		print("*********FUTURES GLOBAL**********")
+		f.writelines(name + '\n')
+		for item in data_global:
+			csv.writer(f, delimiter=';').writerow(item)
+			print(item)
+		f.writelines('\n')
         
 
 def write_forex(data_f, data_global, date, name):
-    with open(os.getcwd() + '\\' + 'For_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
-        print("**********FOREX**********")
-        f.writelines(FOREX + '\n')
-        for item in data_f:
-            csv.writer(f, delimiter=';').writerow(item)
-            print(item)
-        f.writelines('\n')
-        print("*********FOREXGLOBAL**********")
-        f.writelines(name + '\n')
-        for item in data_global:
-            csv.writer(f, delimiter=';').writerow(item)
-            print(item)
+	''' Запись данных форекса в общий файл'''
+	with open(os.getcwd() + '\\' + 'For_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
+		print("**********FOREX**********")
+		f.writelines(FOREX + '\n')
+		for item in data_f:
+			csv.writer(f, delimiter=';').writerow(item)
+			print(item)
+		f.writelines('\n')
+		print("*********FOREXGLOBAL**********")
+		f.writelines(name + '\n')
+		for item in data_global:
+			csv.writer(f, delimiter=';').writerow(item)
+			print(item)
 
             
 def find_global(tags):
@@ -142,7 +144,7 @@ def find_global(tags):
         place = int(tds[0].text)
         name = tds[1].text
         procent = float(re.sub(r'[^0-9,.]', '', tds[2].text))
-        country = tr.find('td', class_="column-4").find('script').text.split(',')[1]
+        country = tr.find('td', class_="column-4").find('script').text.strip()
         country = re.sub(r'[^a-zA-Z]', '', country)
         data = [place, name, procent, country]
         data_global.append(data)
@@ -156,7 +158,7 @@ def find_world(tags):
         place = int(tds[0].text)
         name = tds[1].text
         procent = float(re.sub(r'[^0-9,.]', '', tds[2].text))
-        country = tds[3].find('script').text.split(",")[1]
+        country = tds[3].find('script').text.strip()
         country = re.sub(r'[^a-zA-Z]', '', country)
         data = [place, name, procent, country]
         data_world.append(data)
