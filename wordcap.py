@@ -53,21 +53,22 @@ def check_modules():
         print("Все пакеты установлены!")
 
 
-def parsing_page(start_page):
+def parsing_page(start_page, dir):
     check_modules()
-    get_page(get_html(start_page))
+    get_page(get_html(start_page), dir)
 
 
 def get_html(url):
-    resp = requests.get(url, headers=headers)
-    if resp.status_code == 200:
-        return resp.text
-    else:
-        print("Нет ответа от сервера {}".format(PAGE))
-        return None
+	"""Проверка отвечает ли сервер и получение содержания"""
+	resp = requests.get(url, headers=headers)
+	if resp.status_code == 200:
+		return resp.text
+	else:
+		print("Нет ответа от сервера {}".format(PAGE))
+	return None
 
 
-def get_page(html):
+def get_page(html, dir):
     soup = BeautifulSoup(html, 'html.parser')
     futures = soup.find('table', class_='tablepress tablepress-id-2023-futures-WCC tablepress-responsive')
     forex = soup.find('table', class_='tablepress tablepress-id-2023-forex-wcc tablepress-responsive')
@@ -100,13 +101,13 @@ def get_page(html):
         
     fut_table_global = fut_table.find('tbody', class_='row-hover').find_all('tr')
     data_fut_global = find_global(fut_table_global)
-    write_futures(data_fut, data_fut_global, date_string, fut_name)
-    write_forex(data_for, data_for_global, date_string, for_name)
+    write_futures(data_fut, data_fut_global, date_string, fut_name, dir)
+    write_forex(data_for, data_for_global, date_string, for_name, dir)
     
 
-def write_futures(data_f, data_global, date, name):
+def write_futures(data_f, data_global, date, name, dir):
 	''' Запись данных фьючерса в общий файл'''
-	with open(os.getcwd() + '\\' + 'Fut_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
+	with open(dir + '\\' + 'Fut_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
 		print("*********FUTURES*********")
 		f.writelines(FUTURES + '\n')
 		for item in data_f:
@@ -121,9 +122,9 @@ def write_futures(data_f, data_global, date, name):
 		f.writelines('\n')
         
 
-def write_forex(data_f, data_global, date, name):
+def write_forex(data_f, data_global, date, name, dir):
 	''' Запись данных форекса в общий файл'''
-	with open(os.getcwd() + '\\' + 'For_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
+	with open(dir + '\\' + 'For_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
 		print("**********FOREX**********")
 		f.writelines(FOREX + '\n')
 		for item in data_f:
@@ -166,4 +167,6 @@ def find_world(tags):
     
 
 if __name__ == "__main__":
-    parsing_page(PAGE)
+	dir = os.path.abspath(__file__)
+	dir_name = '\\'.join(dir.split('\\')[:-1])
+	parsing_page(PAGE, dir_name)
