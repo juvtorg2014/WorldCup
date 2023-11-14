@@ -114,7 +114,7 @@ def write_futures(data_f, data_global, date, name, dir):
 			csv.writer(f, delimiter=';').writerow(item)
 			print(item)
 		f.writelines('\n')
-		print("*********FUTURES GLOBAL**********")
+		print("*********FUTURES_GLOBAL**********")
 		f.writelines(name + '\n')
 		for item in data_global:
 			csv.writer(f, delimiter=';').writerow(item)
@@ -131,7 +131,7 @@ def write_forex(data_f, data_global, date, name, dir):
 			csv.writer(f, delimiter=';').writerow(item)
 			print(item)
 		f.writelines('\n')
-		print("*********FOREXGLOBAL**********")
+		print("*********FOREX_GLOBAL**********")
 		f.writelines(name + '\n')
 		for item in data_global:
 			csv.writer(f, delimiter=';').writerow(item)
