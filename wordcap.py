@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 INSTALLED_PACKEGES = sys.modules
 headers = {'User-Agent': 'Mozilla/5.0'}
 NAME_WORLD = '2024 World Cup Championship of Futures Trading®'
-NAME_1Q = '2024 1st Quarter Futures Day Trading Championship®'
+NAME_Q = '2024 -st Quarter Futures Day Trading Championship®'
 NAME_GLOBAL = 'The Global Cup Trading Championship Futures™️ 2023-2024'
 PAGE = "https://www.worldcupchampionships.com//world-cup-trading-championship-standings"
 
@@ -21,6 +21,8 @@ pack_requests = 'requests'
 pack_BS4 = 'bs4'
 pack_datetime = '_datetime'
 pack2 = "pandas"
+
+quarters = {1: [1, 2, 3], 2: [4, 5, 6], 3: [7, 8, 9], 4: [10, 11, 12]}
 
 
 def run_cmd(cmd):
@@ -68,15 +70,27 @@ def get_html(url):
 		print("Нет ответа от сервера {}".format(PAGE))
 	return None
 
+def get_number_quarter() -> int:
+	"""Получение номера квартала"""
+	month = datetime.datetime.today().month
+	for key, value in quarters.items():
+		if month in value:
+			return key
+
 
 def get_1st_quarter(tag, mode) -> list:
 	""" Получение таблицы призеров квартала"""
-	if mode == 'fut':
-		text = 'tablepress-2024-q1-futures'
+	number = get_number_quarter()
+	if number > 0 and number <=4:
+		if mode == 'fut':
+			text = f'tablepress-2024-q{number}-futures'
+		else:
+			text = f'tablepress-2024-q{number}-forex'
+		table = tag.find('table', id=text)
+	if table != None:
+		table_f = table.find('tbody', class_='row-hover').find_all('tr')
 	else:
-		text = 'tablepress-2024-q1-forex'
-	table = tag.find('table', id=text)
-	table_f = table.find('tbody', class_='row-hover').find_all('tr')
+		print('Проверьте номер квартала')
 	return table_f
 	
 	
@@ -162,7 +176,7 @@ def write_futures(data_fut, data_1q, data_gl, date, dir):
 		f.writelines('\n')
 		
 		print("*********Quarter*********")
-		f.writelines(NAME_1Q + '\n')
+		f.writelines(NAME_Q + '\n')
 		for item in data_1q:
 			csv.writer(f, delimiter=';').writerow(item)
 			print(item)
@@ -187,7 +201,7 @@ def write_forex(data_for, data_1q, data_global, date, dir):
 		f.writelines('\n')
 		
 		print("*********Quarter**********")
-		f.writelines(NAME_1Q + '\n')
+		f.writelines(NAME_Q  + '\n')
 		for item in data_1q:
 			csv.writer(f, delimiter=';').writerow(item)
 			print(item)
