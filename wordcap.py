@@ -56,9 +56,9 @@ def check_modules():
 		print("Все пакеты установлены!")
 
 
-def parsing_page(start_page, dir):
+def parsing_page(start_page, dir_dir):
 	check_modules()
-	get_page(get_html(start_page), dir)
+	get_page(get_html(start_page), dir_dir)
 
 
 def get_html(url):
@@ -70,51 +70,53 @@ def get_html(url):
 		print("Нет ответа от сервера {}".format(PAGE))
 	return None
 
+
 def get_number_quarter() -> int:
 	"""Получение номера квартала"""
 	month = datetime.datetime.today().month
 	for key, value in quarters.items():
 		if month in value:
 			return key
+	return 2
 
 
-def get_1st_quarter(tag, mode) -> list:
+def get_st_quarter(tag, mode) -> list:
 	""" Получение таблицы призеров квартала"""
 	number = get_number_quarter()
-	if number > 0 and number <=4:
+	table_f = " "
+	if 0 < number < 5:
 		if mode == 'fut':
 			text = f'tablepress-2024-q{number}-futures'
 		else:
 			text = f'tablepress-2024-q{number}-forex'
 		table = tag.find('table', id=text)
-	if table != None:
-		table_f = table.find('tbody', class_='row-hover').find_all('tr')
-	else:
-		print('Проверьте номер квартала')
+		if table is not None:
+			table_f = table.find('tbody', class_='row-hover').find_all('tr')
+		else:
+			print('Проверьте номер квартала')
 	return table_f
-	
-	
+
+
 def get_2024(tag, mode):
-	if mode == 'fut':
-		text = 'tablepress-2024-futures-wcc'
-	else:
-		text = 'tablepress-2024-forex-wcc'
+	# if mode == 'fut':
+	# 	text = 'tablepress-2024-futures-wcc'
+	# else:
+	# 	text = 'tablepress-2024-forex-wcc'
 	table = tag.find('tbody', class_='row-hover').find_all('tr')
 	return table
 
 
-
-def get_page(html, dir):
+def get_page(html, dir_name):
 	"""Получение данных со страницы"""
 	soup = BeautifulSoup(html, 'html.parser')
-	futures_2024_q = soup.find('div', class_='elementor-element elementor-element-c243174 elementor-widget elementor-widget-text-editor')
-	forex_2024_q = soup.find('div', class_='elementor-element elementor-element-ffa3959 elementor-widget elementor-widget-text-editor')
+	futures_2024_q = soup.find('div',
+		class_='elementor-element elementor-element-c243174 elementor-widget elementor-widget-text-editor')
+	forex_2024_q = soup.find('div',
+		class_='elementor-element elementor-element-ffa3959 elementor-widget elementor-widget-text-editor')
 	
 	futures_2024 = soup.find('table', id='tablepress-2024-futures-wcc')
-	forex_2024 = soup.find('div', class_='has_eae_slider elementor-column elementor-col-33 elementor-inner-column elementor-element elementor-element-08db3c7')
-	
-	futures = soup.find('table', class_='tablepress tablepress-id-2023-futures-WCC tablepress-responsive')
-	forex = soup.find('table', class_='tablepress tablepress-id-2023-forex-wcc tablepress-responsive')
+	forex_2024 = soup.find('div',
+		class_='has_eae_slider elementor-column elementor-col-33 elementor-inner-column elementor-element elementor-element-08db3c7')
 	
 	# Работа с данными World Cup
 	fut_2024_world = get_2024(futures_2024, 'fut')
@@ -123,21 +125,26 @@ def get_page(html, dir):
 	data_for_2024 = find_global(for_2024_world)
 	
 	# Работа с данными квартальными
-	fut_1st_quarter = get_1st_quarter(futures_2024_q, 'fut')
-	for_1st_quarter = get_1st_quarter(forex_2024_q, 'for')
-	data_fut_1q = find_global(fut_1st_quarter)
-	data_for_1q = find_global(for_1st_quarter)
- 
+	fut_st_quarter = get_st_quarter(futures_2024_q, 'fut')
+	for_st_quarter = get_st_quarter(forex_2024_q, 'for')
+	if fut_st_quarter == " ":
+		data_fut_q = fut_st_quarter
+	else:
+		data_fut_q = find_global(fut_st_quarter)
+	if for_st_quarter == " ":
+		data_for_q = for_st_quarter
+	else:
+		data_for_q = find_global(for_st_quarter)
 	
 	# Работа с данными  Global Cup
 	for_g = soup.find('div', class_='has_eae_slider elementor-column elementor-col-33 '
-									'elementor-inner-column elementor-element elementor-element-2ffa355')
-	for_name = for_g.find('div', class_="elementor-widget-container").text.strip()
+					'elementor-inner-column elementor-element elementor-element-2ffa355')
+	
 	for_table = for_g.find('table', class_="tablepress tablepress-id-global-cup-forex-23-24 tablepress-responsive")
 	
 	fut = soup.find('div', class_='has_eae_slider elementor-column elementor-col-33 '
-								  'elementor-inner-column elementor-element elementor-element-e7c9cd4')
-	fut_name = fut.find('div', class_="elementor-widget-container").text.strip()
+			'elementor-inner-column elementor-element elementor-element-e7c9cd4')
+	
 	fut_table = fut.find('table', class_="tablepress tablepress-id-global-cup-futures-23-24 tablepress-responsive")
 	
 	date = soup.find('span', id='tablepress-global-cup-futures-23-24-description').text
@@ -149,25 +156,19 @@ def get_page(html, dir):
 	date_n = datetime.datetime.strptime(new_data, '%b %d %Y')
 	date_string = f'{date_n:%Y%m%d}'
 	
-	table_for = forex.find('tbody', class_='row-hover').find_all('tr')
-	data_for = find_world(table_for)
-	
-	table_fut = futures.find('tbody', class_='row-hover').find_all('tr')
-	data_fut = find_world(table_fut)
-	
 	for_table_global = for_table.find('tbody', class_='row-hover').find_all('tr')
 	data_for_global = find_global(for_table_global)
 	
 	fut_table_global = fut_table.find('tbody', class_='row-hover').find_all('tr')
 	data_fut_global = find_global(fut_table_global)
 	
-	write_futures(data_fut_2024, data_fut_1q, data_fut_global, date_string, dir)
-	write_forex(data_for_2024, data_for_1q, data_for_global, date_string, dir)
+	write_futures(data_fut_2024, data_fut_q, data_fut_global, date_string, dir_name)
+	write_forex(data_for_2024, data_for_q, data_for_global, date_string, dir_name)
 
 
-def write_futures(data_fut, data_1q, data_gl, date, dir):
+def write_futures(data_fut, data_1q, data_gl, date, dir_d):
 	""" Запись данных фьючерса в общий файл"""
-	with open(dir + '\\' + 'Fut_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
+	with open(dir_d + '\\' + 'Fut_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
 		print("*********FUTURES_WORLD*********")
 		f.writelines(NAME_WORLD + '\n')
 		for item in data_fut:
@@ -190,9 +191,9 @@ def write_futures(data_fut, data_1q, data_gl, date, dir):
 		f.writelines('\n')
 
 
-def write_forex(data_for, data_1q, data_global, date, dir):
+def write_forex(data_for, data_1q, data_global, date, dird):
 	""" Запись данных форекса в общий файл"""
-	with open(dir + '\\' + 'For_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
+	with open(dird + '\\' + 'For_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
 		print("**********FOREX_WORLD**********")
 		f.writelines(NAME_WORLD + '\n')
 		for item in data_for:
@@ -201,7 +202,7 @@ def write_forex(data_for, data_1q, data_global, date, dir):
 		f.writelines('\n')
 		
 		print("*********Quarter**********")
-		f.writelines(NAME_Q  + '\n')
+		f.writelines(NAME_Q + '\n')
 		for item in data_1q:
 			csv.writer(f, delimiter=';').writerow(item)
 			print(item)
@@ -244,6 +245,6 @@ def find_world(tags):
 
 
 if __name__ == "__main__":
-	dir = os.path.abspath(__file__)
-	dir_name = '\\'.join(dir.split('\\')[:-1])
-	parsing_page(PAGE, dir_name)
+	dirname = os.path.abspath(__file__)
+	dir_nam = '\\'.join(dirname.split('\\')[:-1])
+	parsing_page(PAGE, dir_nam)
