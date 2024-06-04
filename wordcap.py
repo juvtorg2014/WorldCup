@@ -107,14 +107,15 @@ def get_2024(tag, mode):
 def get_page(html, dir_name):
 	"""Получение данных со страницы"""
 	soup = BeautifulSoup(html, 'html.parser')
-	
+	today = []
 	# Работа с датами
 	date = soup.find('span', id='tablepress-global-cup-futures-23-24-description').text
 	year_now = date.split(',')[2]
 	date_date = date.split(',')[1].split(' ')
-	
-	today = date_date[3] + ' ' + date_date[4] + ' ' + year_now.strip()
-	new_data = today.replace(today.partition(' ')[0], today[:3])
+	for item in date_date:
+		if len(item) > 1:
+			today.append(item)
+	new_data = today[1] + ' ' + today[2] + ' ' + today[0]
 	date_n = datetime.datetime.strptime(new_data, '%b %d %Y')
 	date_string = f'{date_n:%Y%m%d}'
 	
