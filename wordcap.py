@@ -109,14 +109,16 @@ def get_page(html, dir_name):
 	soup = BeautifulSoup(html, 'html.parser')
 	today = []
 	# Работа с датами
-	date = soup.find('span', id='tablepress-global-cup-futures-23-24-description').text
-	year_now = date.split(',')[2]
-	date_date = date.split(',')[1].split(' ')
-	for item in date_date:
-		if len(item) > 1:
-			today.append(item)
-	new_data = today[1] + ' ' + today[2] + ' ' + today[0]
-	date_n = datetime.datetime.strptime(new_data, '%b %d %Y')
+	date = soup.find('span', id='tablepress-2024-futures-wcc-description').text
+	year_now = date.split(',')[2].strip()
+	date_now = date.split(',')[1].split(' ')[-1]
+	month_now = date.split(',')[1].split(' ')[-2]
+	# for item in date_date:
+	# 	if len(item) > 1:
+	# 		today.append(item)
+	#new_data = today[1] + ' ' + today[2] + ' ' + today[0]
+	new_date = month_now + ' ' + date_now + ' ' + year_now
+	date_n = datetime.datetime.strptime(new_date, '%B %d %Y')
 	date_string = f'{date_n:%Y%m%d}'
 	
 	num_q = get_number_quarter(date_n)
