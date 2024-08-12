@@ -152,8 +152,8 @@ def get_page(html, dir_name):
 		data_for_q = find_global(for_st_quarter)
 	
 	# Работа с данными  Global Cup
-	gl_date = soup.find('span', id ='tablepress-global-cup-futures-forex-24-25-description').text
-	for_table = soup.find('div', class_='elementor-element elementor-element-df368fe elementor-widget elementor-widget-text-editor')
+	gl_date = soup.find('span', id='tablepress-global-cup-futures-24-25-description').text
+	for_table = soup.find('table', id='tablepress-global-cup-futures-24-25')
 	global_list = for_table.find('tbody').find_all('tr')
 	data_global = get_global_data(global_list)
 
