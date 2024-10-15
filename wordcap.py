@@ -14,8 +14,10 @@ INSTALLED_PACKEGES = sys.modules
 headers = {'User-Agent': 'Mozilla/5.0'}
 quarters = {1: [1, 2, 3], 2: [4, 5, 6], 3: [7, 8, 9], 4: [10, 11, 12]}
 
-NAME_WORLD = '2024 World Cup Championship of Futures Trading®'
-NAME_GLOBAL = 'The Global Cup Trading Championships™️ 2024-2025'
+FUTURES_WORLD = '2024 World Cup Championship of Futures Trading®'
+FOREX_WORLD = '2024 World Cup Championship of Forex Trading®'
+FUTURES_GLOBAL = '2024-2025 Global Cup Championships of Futures Trading™️'
+FOREX_GLOBAL = '2024-2025 Global Cup Championships of Forex Trading™️'
 PAGE = "https://www.worldcupchampionships.com//world-cup-trading-championship-standings"
 
 pack_requests = 'requests'
@@ -70,13 +72,14 @@ def get_html(url):
 	return None
 
 
-def get_number_quarter(today) -> int:
+def get_number_quarter(tag) -> int:
 	"""Получение номера квартала"""
-	month = today.month
-	for key, value in quarters.items():
-		if month in value:
-			return key
-	return 2
+	table_f = " "
+	for num in range(1,5):
+		text_source = f"tablepress-table-description tablepress-table-description-id-2024-q{num}-futures"
+		table_f = tag.find('span', class_ = text_source)
+		if table_f is not None:
+			return num
 
 
 def get_st_quarter(tag, mode, number) -> list:
@@ -94,12 +97,7 @@ def get_st_quarter(tag, mode, number) -> list:
 			print('Проверьте номер квартала')
 	return table_f
 
-
 def get_2024(tag, mode):
-	# if mode == 'fut':
-	# 	text = 'tablepress-2024-futures-wcc'
-	# else:
-	# 	text = 'tablepress-2024-forex-wcc'
 	table = tag.find('tbody', class_='row-hover').find_all('tr')
 	return table
 
@@ -114,16 +112,10 @@ def get_page(html, dir_name):
 	year_now = date.split(',')[2].strip()
 	date_now = date.split(',')[1].split(' ')[-1]
 	month_now = date.split(',')[1].split(' ')[-2]
-	# for item in date_date:
-	# 	if len(item) > 1:
-	# 		today.append(item)
-	#new_data = today[1] + ' ' + today[2] + ' ' + today[0]
 	new_date = month_now + ' ' + date_now + ' ' + year_now
 	date_n = datetime.datetime.strptime(new_date, '%B %d %Y')
 	date_string = f'{date_n:%Y%m%d}'
 	
-	num_q = get_number_quarter(date_n)
-	name_qr = f'2024 {num_q}-st Quarter Futures Day Trading Championship®'
 	futures_2024_q = soup.find('div',
 		class_='elementor-element elementor-element-c243174 elementor-widget elementor-widget-text-editor')
 	forex_2024_q = soup.find('div',
@@ -140,6 +132,8 @@ def get_page(html, dir_name):
 	data_for_2024 = find_global(for_2024_world)
 	
 	# Работа с данными квартальными
+	num_q = get_number_quarter(futures_2024_q)
+	name_qr = f'2024 {num_q}-st Quarter Futures Day Trading Championship®'
 	fut_st_quarter = get_st_quarter(futures_2024_q, 'fut', num_q)
 	for_st_quarter = get_st_quarter(forex_2024_q, 'for', num_q)
 	if fut_st_quarter == " ":
@@ -157,9 +151,14 @@ def get_page(html, dir_name):
 	global_list = for_table.find('tbody').find_all('tr')
 	data_global = get_global_data(global_list)
 
+	gl_for_date = soup.find('span', id='tablepress-global-cup-forex-24-25-description').text
+	forex_table = soup.find('table', id='tablepress-global-cup-forex-24-25')
+	global_for_list = forex_table.find('tbody').find_all('tr')
+	data_for_global = get_global_data(global_for_list)
+
 	# Запись всех данных в файлы
 	write_futures(data_fut_2024, data_fut_q, data_global, date_string, dir_name, name_qr, gl_date)
-	write_forex(data_for_2024, data_for_q, data_global, date_string, dir_name, name_qr, gl_date)
+	write_forex(data_for_2024, data_for_q, data_for_global, date_string, dir_name, name_qr, gl_for_date)
 
 
 def get_global_data(global_list)->list:
@@ -177,7 +176,7 @@ def write_futures(data_fut, data_1q, data_gl, date, dir_d, qr, gl_date):
 	""" Запись данных фьючерса в общий файл"""
 	with open(dir_d + '\\' + 'Fut_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
 		print("*********FUTURES_WORLD*********")
-		f.writelines(NAME_WORLD + '\n')
+		f.writelines(FOREX_WORLD + '\n')
 		for item in data_fut:
 			csv.writer(f, delimiter=';').writerow(item)
 			print(item)
@@ -191,7 +190,7 @@ def write_futures(data_fut, data_1q, data_gl, date, dir_d, qr, gl_date):
 		f.writelines('\n')
 		
 		print("*********FUTURES_GLOBAL**********")
-		f.writelines(NAME_GLOBAL + '\n')
+		f.writelines(FUTURES_GLOBAL + '\n')
 		f.writelines(gl_date + '\n')
 		for item in data_gl:
 			csv.writer(f, delimiter=';').writerow(item)
@@ -203,7 +202,7 @@ def write_forex(data_for, data_1q, data_global, date, dird, qr, gl_date):
 	""" Запись данных форекса в общий файл"""
 	with open(dird + '\\' + 'For_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
 		print("**********FOREX_WORLD**********")
-		f.writelines(NAME_WORLD + '\n')
+		f.writelines(FOREX_WORLD + '\n')
 		for item in data_for:
 			csv.writer(f, delimiter=';').writerow(item)
 			print(item)
@@ -217,7 +216,7 @@ def write_forex(data_for, data_1q, data_global, date, dird, qr, gl_date):
 		f.writelines('\n')
 		
 		print("*********FOREX_GLOBAL**********")
-		f.writelines(NAME_GLOBAL + '\n')
+		f.writelines(FOREX_GLOBAL + '\n')
 		f.writelines(gl_date + '\n')
 		for item in data_global:
 			csv.writer(f, delimiter=';').writerow(item)
