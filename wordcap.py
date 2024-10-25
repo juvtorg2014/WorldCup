@@ -5,20 +5,22 @@ import datetime
 import os
 import re
 import sys
+from time import sleep
 from subprocess import run, PIPE, STDOUT
+from fake_useragent import UserAgent
 
 import requests
+from requests.adapters import HTTPAdapter, Retry
 from bs4 import BeautifulSoup
 
 INSTALLED_PACKEGES = sys.modules
-headers = {'User-Agent': 'Mozilla/5.0'}
 quarters = {1: [1, 2, 3], 2: [4, 5, 6], 3: [7, 8, 9], 4: [10, 11, 12]}
 
 FUTURES_WORLD = '2024 World Cup Championship of Futures Trading®'
 FOREX_WORLD = '2024 World Cup Championship of Forex Trading®'
 FUTURES_GLOBAL = '2024-2025 Global Cup Championships of Futures Trading™️'
 FOREX_GLOBAL = '2024-2025 Global Cup Championships of Forex Trading™️'
-PAGE = "https://www.worldcupchampionships.com//world-cup-trading-championship-standings"
+PAGE = "https://www.worldcupchampionships.com/world-cup-trading-championship-standings"
 
 pack_requests = 'requests'
 pack_BS4 = 'bs4'
@@ -59,17 +61,33 @@ def check_modules():
 
 def parsing_page(start_page, dir_dir):
 	check_modules()
-	get_page(get_html(start_page), dir_dir)
-
+	resp = get_html(start_page)
+	if resp != None:
+		get_page(resp, dir_dir)
+	else:
+		print("Что-то пошло не так!")
 
 def get_html(url):
-	"""Проверка отвечает ли сервер и получение содержания"""
-	resp = requests.get(url, headers=headers)
-	if resp.status_code == 200:
-		return resp.text
-	else:
-		print("Нет ответа от сервера {}".format(PAGE))
-	return None
+	"""Проверка отвечает ли сервер и получение содержания страницы"""
+	responce = None
+	counter = 1
+	session = requests.session()
+	retry = Retry(connect=3, backoff_factor=0.5)
+	adapter = HTTPAdapter(max_retries=retry)
+	session.mount('http://', adapter)
+	session.mount('https://', adapter)
+	while responce is None and counter <= 10:
+		ua = UserAgent()
+		header = {'User-Agent': str(ua.chrome)}
+		try:
+			responce = session.get(url, headers=header, verify=False, timeout=30)
+			if responce.status_code == 200:
+				return responce.text
+		except requests.exceptions.ConnectionError:
+			print(f"Нет ответа от сервера {PAGE} попытка {counter}")
+			sleep(1.5)
+			counter += 1
+			continue
 
 
 def get_number_quarter(tag) -> int:
