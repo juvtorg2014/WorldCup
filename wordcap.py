@@ -10,6 +10,7 @@ from subprocess import run, PIPE, STDOUT
 from fake_useragent import UserAgent
 
 import requests
+import urllib3
 from requests.adapters import HTTPAdapter, Retry
 from bs4 import BeautifulSoup
 
@@ -26,6 +27,8 @@ pack_requests = 'requests'
 pack_BS4 = 'bs4'
 pack_datetime = '_datetime'
 pack2 = "pandas"
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def run_cmd(cmd):
@@ -126,12 +129,15 @@ def get_page(html, dir_name):
 	today = []
 	global_list = []
 	# Работа с датами
-	date = soup.find('span', id='tablepress-2024-futures-wcc-description').text
+	date = soup.find('span', id='tablepress-global-cup-futures-24-25-description').text
 	year_now = date.split(',')[2].strip()
 	date_now = date.split(',')[1].split(' ')[-1]
 	month_now = date.split(',')[1].split(' ')[-2]
 	new_date = month_now + ' ' + date_now + ' ' + year_now
-	date_n = datetime.datetime.strptime(new_date, '%B %d %Y')
+	if new_date is not None:
+		date_n = datetime.datetime.strptime(new_date, '%B %d %Y').date()
+	else:
+		date_n = datetime.datetime.now().date()-datetime.timedelta(1)
 	date_string = f'{date_n:%Y%m%d}'
 	
 	futures_2024_q = soup.find('div',
@@ -193,21 +199,21 @@ def get_global_data(global_list)->list:
 def write_futures(data_fut, data_1q, data_gl, date, dir_d, qr, gl_date):
 	""" Запись данных фьючерса в общий файл"""
 	with open(dir_d + '\\' + 'Fut_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
-		print("*********FUTURES_WORLD*********")
+		print("*****World Cup Championship of Futures Trading®*****")
 		f.writelines(FOREX_WORLD + '\n')
 		for item in data_fut:
 			csv.writer(f, delimiter=';').writerow(item)
 			print(item)
 		f.writelines('\n')
 		
-		print("*********QUARTER*********")
+		print("*****Quarter Futures Day Trading Championship*****")
 		f.writelines(qr + '\n')
 		for item in data_1q:
 			csv.writer(f, delimiter=';').writerow(item)
 			print(item)
 		f.writelines('\n')
 		
-		print("*********FUTURES_GLOBAL**********")
+		print("*****Global Cup Championship of Futures Trading*****")
 		f.writelines(FUTURES_GLOBAL + '\n')
 		f.writelines(gl_date + '\n')
 		for item in data_gl:
@@ -219,21 +225,21 @@ def write_futures(data_fut, data_1q, data_gl, date, dir_d, qr, gl_date):
 def write_forex(data_for, data_1q, data_global, date, dird, qr, gl_date):
 	""" Запись данных форекса в общий файл"""
 	with open(dird + '\\' + 'For_' + date + '.csv', 'w', encoding='utf-8', newline='') as f:
-		print("**********FOREX_WORLD**********")
+		print("*****World Cup Championship of Forex Trading*****")
 		f.writelines(FOREX_WORLD + '\n')
 		for item in data_for:
 			csv.writer(f, delimiter=';').writerow(item)
 			print(item)
 		f.writelines('\n')
 		
-		print("*********QUARTER**********")
+		print("****Quarter Forex Trading Championship*****")
 		f.writelines(qr + '\n')
 		for item in data_1q:
 			csv.writer(f, delimiter=';').writerow(item)
 			print(item)
 		f.writelines('\n')
 		
-		print("*********FOREX_GLOBAL**********")
+		print("*****Global Cup Championship of Forex Trading*****")
 		f.writelines(FOREX_GLOBAL + '\n')
 		f.writelines(gl_date + '\n')
 		for item in data_global:
